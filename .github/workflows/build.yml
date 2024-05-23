@@ -1,0 +1,202 @@
+name: build
+
+on: [push]
+
+jobs:
+  build-linux-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+    - name: install dependencies
+      run: |
+          sudo apt-get update
+          sudo apt-get install libcurl4-openssl-dev
+    - name: prepare environment
+      run: |
+          echo "target_triplet=`gcc -dumpmachine`" >> $GITHUB_ENV
+    - name: fetch libplist
+      uses: dawidd6/action-download-artifact@v3
+      with:
+        github_token: ${{secrets.GITHUB_TOKEN}}
+        workflow: build.yml
+        name: libplist-latest_${{env.target_triplet}}
+        repo: libimobiledevice/libplist
+    - name: install external dependencies
+      run: |
+          mkdir extract
+          for I in *.tar; do
+            tar -C extract -xvf $I
+          done
+          rm -rf extract/lib
+          sudo cp -r extract/* /
+          sudo ldconfig
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: autogen
+      run: ./autogen.sh PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+    - name: make
+      run: make
+    - name: make install
+      run: sudo make install
+    - name: prepare artifact
+      run: |
+          mkdir -p dest
+          DESTDIR=`pwd`/dest make install
+          tar -C dest -cf libtatsu.tar usr
+    - name: publish artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: libtatsu-latest_${{env.target_triplet}}
+        path: libtatsu.tar
+  build-macOS:
+    runs-on: macOS-latest
+    steps:
+    - name: install dependencies
+      run: |
+          if test -x "`which port`"; then
+            sudo port install libtool autoconf automake pkgconfig
+          else
+            brew install libtool autoconf automake pkgconfig
+          fi
+      shell: bash
+    - name: fetch libplist
+      uses: dawidd6/action-download-artifact@v3
+      with:
+        github_token: ${{secrets.GITHUB_TOKEN}}
+        workflow: build.yml
+        name: libplist-latest_macOS
+        repo: libimobiledevice/libplist
+    - name: install external dependencies
+      run: |
+          mkdir extract
+          for I in *.tar; do
+            tar -C extract -xvf $I
+          done
+          sudo cp -r extract/* /
+    - uses: actions/checkout@v4
+    - name: install additional requirements
+      run: |
+          SDKDIR=`xcrun --sdk macosx --show-sdk-path 2>/dev/null`
+          echo "SDKDIR=$SDKDIR" >> $GITHUB_ENV
+          TESTARCHS="arm64 x86_64"
+          USEARCHS=
+          for ARCH in $TESTARCHS; do
+            if echo "int main(int argc, char **argv) { return 0; }" |clang -arch $ARCH -o /dev/null -isysroot $SDKDIR -x c - 2>/dev/null; then
+              USEARCHS="$USEARCHS -arch $ARCH"
+            fi
+          done
+          export CFLAGS="$USEARCHS -isysroot $SDKDIR"
+          echo "Using CFLAGS: $CFLAGS"
+          echo "BUILD_CFLAGS=$CFLAGS" >> $GITHUB_ENV
+          mkdir -p lib
+          curl -o lib/libcrypto.35.tbd -Ls \
+              https://gist.github.com/nikias/94c99fd145a75a5104415e5117b0cafa/raw/5209dfbff5a871a14272afe4794e76eb4cf6f062/libcrypto.35.tbd
+          curl -o lib/libssl.35.tbd -Ls \
+              https://gist.github.com/nikias/94c99fd145a75a5104415e5117b0cafa/raw/5209dfbff5a871a14272afe4794e76eb4cf6f062/libssl.35.tbd
+          LIBRESSL_VER=2.2.7
+          FILENAME="libressl-$LIBRESSL_VER.tar.gz"
+          curl -o $FILENAME -Ls "https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/$FILENAME"
+          mkdir -p deps
+          tar -C deps -xzf $FILENAME
+          echo "LIBRESSL_CFLAGS=-I`pwd`/deps/libressl-$LIBRESSL_VER/include" >> $GITHUB_ENV
+          echo "LIBRESSL_LIBS=-Xlinker `pwd`/lib/libssl.35.tbd -Xlinker `pwd`/lib/libcrypto.35.tbd" >> $GITHUB_ENV
+          FILENAME="libzip-static.tar.bz2"
+          curl -o $FILENAME.b64 -Ls "https://gist.github.com/nikias/3da15d03120382f87b44029cd8495a02/raw/99cd8138fed99e8f6530b6f179f787342c698e1f/libzip-1.7.1_static_macOS.tar.bz2"
+          base64 -D < $FILENAME.b64 > $FILENAME
+          tar -C deps -xjf $FILENAME
+          echo "LIBZIP_CFLAGS=-I`pwd`/deps/include" >> $GITHUB_ENV
+          echo "LIBZIP_LIBS=`pwd`/deps/lib/libzip.a -Xlinker ${SDKDIR}/usr/lib/libbz2.tbd -Xlinker ${SDKDIR}/usr/lib/liblzma.tbd -lz" >> $GITHUB_ENV
+    - name: autogen
+      run: |
+          export CFLAGS="${{env.BUILD_CFLAGS}} -Wno-nullability-completeness -Wno-expansion-to-defined"
+          echo "Using CFLAGS: $CFLAGS"
+          ./autogen.sh PKG_CONFIG_PATH=/usr/local/lib/pkgconfig \
+              libcurl_CFLAGS="-I${{env.SDKDIR}}/usr/include" libcurl_LIBS="-lcurl"
+    - name: make
+      run: make
+    - name: make install
+      run: sudo make install
+    - name: prepare artifact
+      run: |
+          mkdir -p dest
+          DESTDIR=`pwd`/dest make install
+          tar -C dest -cf libtatsu.tar usr
+    - name: publish artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: libtatsu-latest_macOS
+        path: libtatsu.tar
+  build-windows:
+    runs-on: windows-2019
+    defaults:
+      run:
+        shell: msys2 {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: [
+          { msystem: MINGW64, arch: x86_64 },
+          { msystem: MINGW32, arch: i686   }
+        ]
+    steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.msystem }}
+        release: false
+        update: false
+        install: >-
+          base-devel
+          git
+          mingw-w64-${{ matrix.arch }}-gcc
+          make
+          libtool
+          autoconf
+          automake-wrapper
+          liblzma
+    - name: prepare environment
+      run: |
+          dest=`echo ${{ matrix.msystem }} |tr [:upper:] [:lower:]`
+          echo "dest=$dest" >> $GITHUB_ENV
+          echo "target_triplet=`gcc -dumpmachine`" >> $GITHUB_ENV
+    - name: fetch libplist
+      uses: dawidd6/action-download-artifact@v3
+      with:
+        github_token: ${{secrets.GITHUB_TOKEN}}
+        workflow: build.yml
+        name: libplist-latest_${{ matrix.arch }}-${{ env.dest }}
+        repo: libimobiledevice/libplist
+    - name: install external dependencies
+      run: |
+          mkdir extract
+          for I in *.tar; do
+            tar -C extract -xvf $I
+          done
+          cp -r extract/* /
+    - uses: actions/checkout@v4
+    - name: install additional requirements
+      run: |
+          mkdir deps
+          FILENAME="libcurl-8.1.0-static.tar.bz2"
+          curl -o $FILENAME.b64 -Ls "https://gist.github.com/nikias/6c397a0a2f4f4eafd91b81cccd22b761/raw/85216e60af6787f3b351291165eb91bd585ff09a/libcurl-8.1.0-static-${{matrix.arch}}-${{env.dest}}.tar.bz2"
+          base64 -d < $FILENAME.b64 > $FILENAME
+          tar -C deps -xjf $FILENAME
+          echo "LIBCURL_CFLAGS=-I`pwd`/deps/include -DCURL_STATICLIB" >> $GITHUB_ENV
+          echo "LIBCURL_LIBS=-Xlinker `pwd`/deps/lib/libcurl.a -Xlinker /${{env.dest}}/lib/libzstd.a -Xlinker /${{env.dest}}/lib/libz.a -Xlinker -lws2_32 -Xlinker -lcrypt32 -Xlinker -lwldap32 -Xlinker -lbcrypt -Xlinker -lssl -Xlinker -lcrypto" >> $GITHUB_ENV
+    - name: autogen
+      run: |
+          ./autogen.sh CC=gcc CXX=g++ \
+              libcurl_CFLAGS="${{env.LIBCURL_CFLAGS}}" libcurl_LIBS="${{env.LIBCURL_LIBS}}"
+    - name: make
+      run: make
+    - name: make install
+      run: make install
+    - name: prepare artifact
+      run: |
+          mkdir -p dest
+          DESTDIR=`pwd`/dest make install
+          tar -C dest -cf libtatsu.tar ${{ env.dest }}
+    - name: publish artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: libtatsu-latest_${{ matrix.arch }}-${{ env.dest }}
+        path: libtatsu.tar
