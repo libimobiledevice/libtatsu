@@ -495,6 +495,17 @@ static void tss_entry_apply_restore_request_rules(plist_t tss_entry, plist_t par
 	}
 }
 
+static int is_fw_payload(plist_t info_dict)
+{
+	return plist_dict_get_bool(info_dict, "IsFirmwarePayload")
+		 || plist_dict_get_bool(info_dict, "IsSecondaryFirmwarePayload")
+		 || plist_dict_get_bool(info_dict, "IsFUDFirmware")
+		 || plist_dict_get_bool(info_dict, "IsLoadedByiBoot")
+		 || plist_dict_get_bool(info_dict, "IsEarlyAccessFirmware")
+		 || plist_dict_get_bool(info_dict, "IsiBootEANFirmware")
+		 || plist_dict_get_bool(info_dict, "IsiBootNonEssentialFirmware");
+}
+
 int tss_request_add_ap_recovery_tags(plist_t request, plist_t parameters, plist_t overrides)
 {
 	/* loop over components from build manifest */
@@ -622,20 +633,13 @@ int tss_request_add_ap_recovery_tags(plist_t request, plist_t parameters, plist_
 			continue;
 		}
 
-		if (plist_dict_get_bool(parameters, "_OnlyFWComponents")) {
-			if (!plist_dict_get_bool(manifest_entry, "Trusted")) {
-				debug("DEBUG: %s: Skipping '%s' as it is not trusted\n", __func__, key);
-				continue;
-			}
+		if (!plist_dict_get_bool(manifest_entry, "Trusted")) {
+			debug("DEBUG: %s: Skipping '%s' as it is not trusted\n", __func__, key);
+			continue;
+		}
 
-			if (!plist_dict_get_bool(info_dict, "IsFirmwarePayload")
-			 && !plist_dict_get_bool(info_dict, "IsSecondaryFirmwarePayload")
-			 && !plist_dict_get_bool(info_dict, "IsFUDFirmware")
-			 && !plist_dict_get_bool(info_dict, "IsLoadedByiBoot")
-			 && !plist_dict_get_bool(info_dict, "IsEarlyAccessFirmware")
-			 && !plist_dict_get_bool(info_dict, "IsiBootEANFirmware")
-			 && !plist_dict_get_bool(info_dict, "IsiBootNonEssentialFirmware"))
-			{
+		if (plist_dict_get_bool(parameters, "_OnlyFWComponents")) {
+			if (!is_fw_payload(info_dict)) {
 				debug("DEBUG: %s: Skipping '%s' as it is not a firmware payload\n", __func__, key);
 				continue;
 			}
@@ -655,7 +659,7 @@ int tss_request_add_ap_recovery_tags(plist_t request, plist_t parameters, plist_
 		}
 
 		/* Make sure we have a Digest key for Trusted items even if empty */
-		if (plist_dict_get_bool(manifest_entry, "Trusted") && !plist_dict_get_item(manifest_entry, "Digest")) {
+		if (!plist_dict_get_item(manifest_entry, "Digest")) {
 			debug("DEBUG: No Digest data, using empty value for entry %s\n", key);
 			plist_dict_set_item(tss_entry, "Digest", plist_new_data(NULL, 0));
 		}
@@ -725,32 +729,13 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
 			continue;
 		}
 
-		if (plist_dict_get_bool(parameters, "ApSupportsImg4")) {
-			if (!plist_dict_get_item(info_dict, "RestoreRequestRules")) {
-				debug("DEBUG: %s: Skipping '%s' as it doesn't have RestoreRequestRules\n", __func__, key);
-				continue;
-			}
+		if (!plist_dict_get_bool(manifest_entry, "Trusted")) {
+			debug("DEBUG: %s: Skipping '%s' as it is not trusted\n", __func__, key);
+			continue;
 		}
 
-		int is_fw_payload = plist_dict_get_bool(info_dict, "IsFirmwarePayload")
-				 || plist_dict_get_bool(info_dict, "IsSecondaryFirmwarePayload")
-				 || plist_dict_get_bool(info_dict, "IsFUDFirmware")
-				 || plist_dict_get_bool(info_dict, "IsLoadedByiBoot")
-				 || plist_dict_get_bool(info_dict, "IsEarlyAccessFirmware")
-				 || plist_dict_get_bool(info_dict, "IsiBootEANFirmware")
-				 || plist_dict_get_bool(info_dict, "IsiBootNonEssentialFirmware");
-
-		if (plist_dict_get_bool(parameters, "_OnlyFWOrTrustedComponents")) {
-			if (!plist_dict_get_bool(manifest_entry, "Trusted") && !is_fw_payload) {
-				debug("DEBUG: %s: Skipping '%s' as it is neither firmware payload nor trusted\n", __func__, key);
-				continue;
-			}
-		} else if (plist_dict_get_bool(parameters, "_OnlyFWComponents")) {
-			if (!plist_dict_get_bool(manifest_entry, "Trusted")) {
-				debug("DEBUG: %s: Skipping '%s' as it is not trusted\n", __func__, key);
-				continue;
-			}
-			if (!is_fw_payload) {
+		if (plist_dict_get_bool(parameters, "_OnlyFWComponents")) {
+			if (!is_fw_payload(info_dict)) {
 				debug("DEBUG: %s: Skipping '%s' as it is not a firmware payload\n", __func__, key);
 				continue;
 			}
@@ -773,10 +758,13 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
 		if (rules) {
 			debug("DEBUG: Applying restore request rules for entry %s\n", key);
 			tss_entry_apply_restore_request_rules(tss_entry, parameters, rules);
+		} else {
+			plist_dict_copy_bool(tss_entry, parameters, "EPRO", "ApProductionMode");
+			plist_dict_copy_bool(tss_entry, parameters, "ESEC", "ApSecurityMode");
 		}
 
 		/* Make sure we have a Digest key for Trusted items even if empty */
-		if (plist_dict_get_bool(manifest_entry, "Trusted") && !plist_dict_get_item(manifest_entry, "Digest")) {
+		if (!plist_dict_get_item(manifest_entry, "Digest")) {
 			debug("DEBUG: No Digest data, using empty value for entry %s\n", key);
 			plist_dict_set_item(tss_entry, "Digest", plist_new_data(NULL, 0));
 		}
