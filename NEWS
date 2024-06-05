@@ -1,3 +1,9 @@
+Version 1.0.1
+~~~~~~~~~~~~~
+
+Changes:
+- tss: Only consider components that are 'Trusted'
+
 Version 1.0.0
 ~~~~~~~~~~~~~
 
