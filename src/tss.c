@@ -83,7 +83,7 @@ static void debug_plist(plist_t plist)
 	if (debug_level < 2)
 		return;
 
-	plist_write_to_stream(plist, stderr, PLIST_FORMAT_PRINT, PLIST_OPT_NONE);
+	plist_write_to_stream(plist, stderr, PLIST_FORMAT_XML, PLIST_OPT_NONE);
 }
 
 #define GET_RAND(min, max) ((rand() % (max - min)) + min)
