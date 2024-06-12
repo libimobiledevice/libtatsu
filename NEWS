@@ -1,3 +1,16 @@
+Version 1.0.2
+~~~~~~~~~~~~~
+
+Bugfix release
+
+Fixes:
+- Revert strict 'Trusted' check and only bail out when not trusted and without RestoreRequestRules;
+  this caused TSS requests to be incomplete resulting in restore failures.
+
+Changes:
+- Abort if we get an unhandled status code, instead of retrying
+- Print debug plist data in XML format
+
 Version 1.0.1
 ~~~~~~~~~~~~~
 
