@@ -1643,6 +1643,7 @@ plist_t tss_request_send(plist_t tss_request, const char* server_url_string)
 			break;
 		} else {
 			error("ERROR: tss_send_request: Unhandled status code %d\n", status_code);
+			break;
 		}
 	}
 
