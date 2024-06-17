@@ -15,7 +15,7 @@ dnl libtool versioning
 #                 changes to the signature and the semantic)
 #  ? :+1 : ?   == just internal changes
 # CURRENT : REVISION : AGE
-LIBTATSU_SO_VERSION=0:0:0
+LIBTATSU_SO_VERSION=0:1:0
 
 # Check if we have a version defined
 if test -z $PACKAGE_VERSION; then
