@@ -728,15 +728,17 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
 			continue;
 		}
 
-		if (plist_dict_get_bool(parameters, "ApSupportsImg4")) {
-			if (!plist_dict_get_item(info_dict, "RestoreRequestRules") && !plist_dict_get_bool(manifest_entry, "Trusted")) {
+		uint8_t trusted = plist_dict_get_bool(manifest_entry, "Trusted");
+		uint8_t supports_img4 = plist_dict_get_bool(parameters, "ApSupportsImg4");
+		if (supports_img4) {
+			if (!plist_dict_get_item(info_dict, "RestoreRequestRules") && !trusted) {
 				debug("DEBUG: %s: Skipping '%s' as it doesn't have RestoreRequestRules and is not Trusted\n", __func__, key);
 				continue;
 			}
 		}
 
 		if (plist_dict_get_bool(parameters, "_OnlyFWComponents")) {
-			if (!plist_dict_get_bool(manifest_entry, "Trusted")) {
+			if (!trusted) {
 				debug("DEBUG: %s: Skipping '%s' as it is not trusted\n", __func__, key);
 				continue;
 			}
@@ -763,15 +765,20 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
 		if (rules) {
 			debug("DEBUG: Applying restore request rules for entry %s\n", key);
 			tss_entry_apply_restore_request_rules(tss_entry, parameters, rules);
-		} else {
+		} else if (supports_img4) {
 			plist_dict_copy_bool(tss_entry, parameters, "EPRO", "ApProductionMode");
 			plist_dict_copy_bool(tss_entry, parameters, "ESEC", "ApSecurityMode");
 		}
 
 		/* Make sure we have a Digest key for Trusted items even if empty */
-		if (plist_dict_get_bool(manifest_entry, "Trusted") && !plist_dict_get_item(manifest_entry, "Digest")) {
+		if (trusted && !plist_dict_get_item(manifest_entry, "Digest")) {
 			debug("DEBUG: No Digest data, using empty value for entry %s\n", key);
 			plist_dict_set_item(tss_entry, "Digest", plist_new_data(NULL, 0));
+		}
+
+		/* empty entry is not needed */
+		if (plist_dict_get_size(tss_entry) == 0) {
+			continue;
 		}
 
 		/* finally add entry to request */
