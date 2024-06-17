@@ -1,3 +1,10 @@
+Version 1.0.3
+~~~~~~~~~~~~~
+
+Fixes:
+- Fix TSS request generation for non-img4 requests
+
+
 Version 1.0.2
 ~~~~~~~~~~~~~
 
@@ -11,11 +18,13 @@ Changes:
 - Abort if we get an unhandled status code, instead of retrying
 - Print debug plist data in XML format
 
+
 Version 1.0.1
 ~~~~~~~~~~~~~
 
 Changes:
 - tss: Only consider components that are 'Trusted'
+
 
 Version 1.0.0
 ~~~~~~~~~~~~~
