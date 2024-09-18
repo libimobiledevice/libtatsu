@@ -49,9 +49,6 @@ AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT8_T
 
-# Checks for library functions.
-AC_CHECK_FUNCS([asprintf strcasecmp strdup strerror strndup stpcpy vasprintf getifaddrs poll])
-
 AC_CHECK_HEADER(endian.h, [ac_cv_have_endian_h="yes"], [ac_cv_have_endian_h="no"])
 if test "x$ac_cv_have_endian_h" = "xno"; then
   AC_DEFINE(__LITTLE_ENDIAN,1234,[little endian])
