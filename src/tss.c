@@ -1420,31 +1420,31 @@ int tss_request_add_timer_tags(plist_t request, plist_t parameters, plist_t over
 		return -1;
 	}
 	char key[64];
-	snprintf(key, 64, "@%s", plist_get_string_ptr(node, NULL));
+	snprintf(key, sizeof(key), "@%s", plist_get_string_ptr(node, NULL));
 
 	plist_dict_set_item(request, key, plist_new_bool(1));
 
 	tag = (uint32_t)plist_dict_get_uint(parameters, "TagNumber");
 
-	snprintf(key, 64, "Timer,BoardID,%u", tag);
+	snprintf(key, sizeof(key), "Timer,BoardID,%u", tag);
 	plist_dict_copy_uint(request, parameters, key, NULL);
 
-	snprintf(key, 64, "Timer,ChipID,%u", tag);
+	snprintf(key, sizeof(key), "Timer,ChipID,%u", tag);
 	plist_dict_copy_uint(request, parameters, key, NULL);
 
-	snprintf(key, 64, "Timer,SecurityDomain,%u", tag);
+	snprintf(key, sizeof(key), "Timer,SecurityDomain,%u", tag);
 	plist_dict_copy_uint(request, parameters, key, NULL);
 
-	snprintf(key, 64, "Timer,SecurityMode,%u", tag);
+	snprintf(key, sizeof(key), "Timer,SecurityMode,%u", tag);
 	plist_dict_copy_bool(request, parameters, key, NULL);
 
-	snprintf(key, 64, "Timer,ProductionMode,%u", tag);
+	snprintf(key, sizeof(key), "Timer,ProductionMode,%u", tag);
 	plist_dict_copy_bool(request, parameters, key, NULL);
 
-	snprintf(key, 64, "Timer,ECID,%u", tag);
+	snprintf(key, sizeof(key), "Timer,ECID,%u", tag);
 	plist_dict_copy_uint(request, parameters, key, NULL);
 
-	snprintf(key, 64, "Timer,Nonce,%u", tag);
+	snprintf(key, sizeof(key), "Timer,Nonce,%u", tag);
 	plist_dict_copy_data(request, parameters, key, NULL);
 
 	char *comp_name = NULL;
