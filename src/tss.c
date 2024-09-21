@@ -37,7 +37,7 @@
 
 #define USER_AGENT_STRING "InetURL/1.0"
 
-#define AUTH_VERSION "973.40.2"
+#define AUTH_VERSION "1033.0.6"
 
 #ifdef WIN32
 #define TSS_CLIENT_VERSION_STRING "libauthinstall_Win-"AUTH_VERSION"" 
@@ -189,6 +189,12 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity,
 	}
 
 	plist_dict_copy_string(parameters, build_identity, "Ap,OSLongVersion", NULL);
+	plist_dict_copy_string(parameters, build_identity, "Ap,OSReleaseType", NULL);
+	plist_dict_copy_string(parameters, build_identity, "Ap,ProductMarketingVersion", NULL);
+	plist_dict_copy_string(parameters, build_identity, "Ap,ProductType", NULL);
+	plist_dict_copy_string(parameters, build_identity, "Ap,SDKPlatform", NULL);
+	plist_dict_copy_string(parameters, build_identity, "Ap,Target", NULL);
+	plist_dict_copy_string(parameters, build_identity, "Ap,TargetType", NULL);
 
 	if (plist_dict_copy_uint(parameters, build_identity, "ApChipID", NULL) < 0) {;
 		error("ERROR: Unable to find ApChipID node\n");
@@ -264,6 +270,10 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity,
 
 	plist_dict_copy_uint(parameters, build_identity, "NeRDEpoch", NULL);
 	plist_dict_copy_data(parameters, build_identity, "PearlCertificationRootPub", NULL);
+	plist_dict_copy_bool(parameters, build_identity, "AllowNeRDBoot", NULL);
+	if (plist_dict_get_item(parameters, "NeRDEpoch")) {
+		plist_dict_set_item(parameters, "PermitNeRDPivot", plist_new_data(NULL, 0));
+	}
 
 	plist_dict_copy_uint(parameters, build_identity, "Timer,BoardID,1", NULL);
 	plist_dict_copy_uint(parameters, build_identity, "Timer,BoardID,2", NULL);
@@ -321,6 +331,12 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters)
 	}
 
 	plist_dict_copy_string(request, parameters, "Ap,OSLongVersion", NULL);
+	plist_dict_copy_string(request, parameters, "Ap,OSReleaseType", NULL);
+	plist_dict_copy_string(request, parameters, "Ap,ProductMarketingVersion", NULL);
+	plist_dict_copy_string(request, parameters, "Ap,ProductType", NULL);
+	plist_dict_copy_string(request, parameters, "Ap,SDKPlatform", NULL);
+	plist_dict_copy_string(request, parameters, "Ap,Target", NULL);
+	plist_dict_copy_string(request, parameters, "Ap,TargetType", NULL);
 
 	if (plist_dict_copy_data(request, parameters, "ApNonce", NULL) < 0) {
 		error("ERROR: Unable to find required ApNonce in parameters\n");
@@ -347,6 +363,8 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters)
 	plist_dict_copy_data(request, parameters, "SepNonce", "ApSepNonce");
 	plist_dict_copy_uint(request, parameters, "NeRDEpoch", NULL);
 	plist_dict_copy_data(request, parameters, "PearlCertificationRootPub", NULL);
+	plist_dict_copy_bool(request, parameters, "AllowNeRDBoot", NULL);
+	plist_dict_copy_item(request, parameters, "PermitNeRDPivot", NULL);
 
 	if (plist_dict_get_item(parameters, "UID_MODE")) {
 		plist_dict_copy_item(request, parameters, "UID_MODE", NULL);
@@ -720,6 +738,10 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
 
 		/* FIXME: only used with diagnostics firmware */
 		if (strcmp(key, "Diags") == 0) {
+			continue;
+		}
+
+		if (strcmp(key, "Ap,ExclaveOS") == 0) {
 			continue;
 		}
 
