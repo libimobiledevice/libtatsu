@@ -360,7 +360,7 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters)
 		}
 	}
 
-	plist_dict_copy_data(request, parameters, "SepNonce", "ApSepNonce");
+	plist_dict_copy_data(request, parameters, "SepNonce", plist_dict_get_item(parameters, "SepNonce") ? NULL : "ApSepNonce");
 	plist_dict_copy_uint(request, parameters, "NeRDEpoch", NULL);
 	plist_dict_copy_data(request, parameters, "PearlCertificationRootPub", NULL);
 	plist_dict_copy_bool(request, parameters, "AllowNeRDBoot", NULL);
