@@ -100,7 +100,8 @@ already have it available as a package.
   	libtool \
   	autoconf \
   	automake-wrapper \
-  	pkg-config
+  	pkg-config \
+  	libcurl-devel
   ```
   NOTE: You can use a different shell and different compiler according to your needs. Adapt the above command accordingly.
 
@@ -239,5 +240,5 @@ iPadOS, tvOS, watchOS, and macOS are trademarks of Apple Inc.
 This project is an independent software library and has not been authorized,
 sponsored, or otherwise approved by Apple Inc.
 
-README Updated on: 2024-05-19
+README Updated on: 2024-10-22
 
