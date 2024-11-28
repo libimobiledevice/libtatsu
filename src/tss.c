@@ -39,7 +39,7 @@
 
 #define AUTH_VERSION "1033.0.6"
 
-#ifdef WIN32
+#ifdef _WIN32
 #define TSS_CLIENT_VERSION_STRING "libauthinstall_Win-"AUTH_VERSION"" 
 #else
 #define TSS_CLIENT_VERSION_STRING "libauthinstall-"AUTH_VERSION""
@@ -112,7 +112,7 @@ plist_t tss_request_new(plist_t overrides)
 	plist_t request = plist_new_dict();
 
 	plist_dict_set_item(request, "@HostPlatformInfo",
-#ifdef WIN32
+#ifdef _WIN32
 		plist_new_string("windows")
 #else
 		plist_new_string("mac")
