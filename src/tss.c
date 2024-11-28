@@ -27,8 +27,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <inttypes.h>
+
+#ifndef _MSC_VER
+#include <unistd.h>
+#else
+#include <windows.h>
+#define sleep(n) Sleep(n * 1000)
+#endif
+
 #include <curl/curl.h>
 #include <plist/plist.h>
 
