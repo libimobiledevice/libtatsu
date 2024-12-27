@@ -32,6 +32,14 @@
   #endif
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 LIBTATSU_API const char* libtatsu_version();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

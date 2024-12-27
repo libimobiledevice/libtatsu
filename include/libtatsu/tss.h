@@ -28,6 +28,10 @@
 #include <plist/plist.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* parameters */
 LIBTATSU_API int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity, bool include_manifest);
 
@@ -64,5 +68,9 @@ LIBTATSU_API int tss_response_get_blob_by_path(plist_t response, const char* pat
 LIBTATSU_API int tss_response_get_blob_by_entry(plist_t response, const char* entry, unsigned char** blob);
 
 LIBTATSU_API void tss_set_debug_level(int level);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
