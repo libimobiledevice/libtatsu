@@ -1,8 +1,18 @@
+Version 1.0.5
+~~~~~~~~~~~~~
+
+Changes:
+- Fix compilation on MSVC
+- Add extern "C" guards to public headers
+- Update auth client version
+
+
 Version 1.0.4
 ~~~~~~~~~~~~~
 
 Changes:
 - Updated for iPhone 16 device family
+
 
 Version 1.0.3
 ~~~~~~~~~~~~~
