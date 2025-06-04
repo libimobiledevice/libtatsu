@@ -101,6 +101,7 @@ already have it available as a package.
   	autoconf \
   	automake-wrapper \
   	pkg-config \
+        libzstd-devel \
   	libcurl-devel
   ```
   NOTE: You can use a different shell and different compiler according to your needs. Adapt the above command accordingly.
@@ -240,5 +241,5 @@ iPadOS, tvOS, watchOS, and macOS are trademarks of Apple Inc.
 This project is an independent software library and has not been authorized,
 sponsored, or otherwise approved by Apple Inc.
 
-README Updated on: 2024-10-22
+README Updated on: 2025-06-04
 
