@@ -44,7 +44,7 @@
 
 #define USER_AGENT_STRING "InetURL/1.0"
 
-#define AUTH_VERSION "1049.100.23"
+#define AUTH_VERSION "1104.0.9"
 
 #ifdef _WIN32
 #define TSS_CLIENT_VERSION_STRING "libauthinstall_Win-"AUTH_VERSION"" 
@@ -202,6 +202,7 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity,
 	plist_dict_copy_string(parameters, build_identity, "Ap,SDKPlatform", NULL);
 	plist_dict_copy_string(parameters, build_identity, "Ap,Target", NULL);
 	plist_dict_copy_string(parameters, build_identity, "Ap,TargetType", NULL);
+	plist_dict_copy_string(parameters, build_identity, "Ap,Timestamp", NULL);
 
 	if (plist_dict_copy_uint(parameters, build_identity, "ApChipID", NULL) < 0) {;
 		error("ERROR: Unable to find ApChipID node\n");
@@ -344,6 +345,7 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters)
 	plist_dict_copy_string(request, parameters, "Ap,SDKPlatform", NULL);
 	plist_dict_copy_string(request, parameters, "Ap,Target", NULL);
 	plist_dict_copy_string(request, parameters, "Ap,TargetType", NULL);
+	plist_dict_copy_string(request, parameters, "Ap,Timestamp", NULL);
 
 	if (plist_dict_copy_data(request, parameters, "ApNonce", NULL) < 0) {
 		error("ERROR: Unable to find required ApNonce in parameters\n");
