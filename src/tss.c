@@ -1375,6 +1375,139 @@ int tss_request_add_veridian_tags(plist_t request, plist_t parameters, plist_t o
 	return 0;
 }
 
+int tss_request_add_bora_tags(plist_t request, plist_t parameters, plist_t overrides)
+{
+	plist_t node = NULL;
+
+	plist_t manifest_node = plist_dict_get_item(parameters, "Manifest");
+	if (!manifest_node || plist_get_node_type(manifest_node) != PLIST_DICT) {
+		error("ERROR: %s: Unable to get restore manifest from parameters\n", __func__);
+		return -1;
+	}
+
+	/* add tags indicating we want to get the AVISP1,Ticket */
+	plist_dict_set_item(request, "@BBTicket", plist_new_bool(1));
+	plist_dict_set_item(request, "@AVISP1,Ticket", plist_new_bool(1));
+
+	plist_dict_copy_uint(request, parameters, "AVISP1,BoardID", NULL);
+	plist_dict_copy_uint(request, parameters, "AVISP1,ChipID", NULL);
+	plist_dict_copy_uint(request, parameters, "AVISP1,ECID", NULL);
+	plist_dict_copy_data(request, parameters, "AVISP1,Nonce", NULL);
+	plist_dict_copy_bool(request, parameters, "AVISP1,ProductionMode", NULL);
+	plist_dict_copy_uint(request, parameters, "AVISP1,SecurityDomain", NULL);
+	plist_dict_copy_bool(request, parameters, "AVISP1,SecurityMode", NULL);
+	plist_dict_copy_data(request, parameters, "AVISP1,FdrRootCaDigest", NULL);
+
+	char *comp_name = NULL;
+	plist_dict_iter iter = NULL;
+	plist_dict_new_iter(manifest_node, &iter);
+	while (iter) {
+		node = NULL;
+		comp_name = NULL;
+		plist_dict_next_item(manifest_node, iter, &comp_name, &node);
+		if (comp_name == NULL) {
+			node = NULL;
+			break;
+		}
+		if (strncmp(comp_name, "AVISP1,", 7) == 0) {
+			plist_t manifest_entry = plist_copy(node);
+
+			/* handle RestoreRequestRules */
+			plist_t rules = plist_access_path(manifest_entry, 2, "Info", "RestoreRequestRules");
+			if (rules) {
+				debug("DEBUG: Applying restore request rules for entry %s\n", comp_name);
+				tss_entry_apply_restore_request_rules(manifest_entry, parameters, rules);
+			}
+
+			/* Make sure we have a Digest key for Trusted items even if empty */
+			if (plist_dict_get_bool(manifest_entry, "Trusted") && !plist_dict_get_item(manifest_entry, "Digest")) {
+				debug("DEBUG: No Digest data, using empty value for entry %s\n", comp_name);
+				plist_dict_set_item(manifest_entry, "Digest", plist_new_data(NULL, 0));
+			}
+
+			plist_dict_remove_item(manifest_entry, "Info");
+
+			/* finally add entry to request */
+			plist_dict_set_item(request, comp_name, manifest_entry);
+		}
+		free(comp_name);
+	}
+	free(iter);
+
+	/* apply overrides */
+	if (overrides) {
+		plist_dict_merge(&request, overrides);
+	}
+
+	return 0;
+}
+
+int tss_request_add_durant_tags(plist_t request, plist_t parameters, plist_t overrides)
+{
+	plist_t node = NULL;
+
+	plist_t manifest_node = plist_dict_get_item(parameters, "Manifest");
+	if (!manifest_node || plist_get_node_type(manifest_node) != PLIST_DICT) {
+		error("ERROR: %s: Unable to get restore manifest from parameters\n", __func__);
+		return -1;
+	}
+
+	/* add tags indicating we want to get the AudioAP1,Ticket */
+	plist_dict_set_item(request, "@BBTicket", plist_new_bool(1));
+	plist_dict_set_item(request, "@AudioAP1,Ticket", plist_new_bool(1));
+
+	plist_dict_copy_uint(request, parameters, "AudioAP1,BoardID", NULL);
+	plist_dict_copy_uint(request, parameters, "AudioAP1,ChipID", NULL);
+	plist_dict_copy_uint(request, parameters, "AudioAP1,ECID", NULL);
+	plist_dict_copy_data(request, parameters, "AudioAP1,Nonce", NULL);
+	plist_dict_copy_bool(request, parameters, "AudioAP1,ProductionMode", NULL);
+	plist_dict_copy_uint(request, parameters, "AudioAP1,SecurityDomain", NULL);
+	plist_dict_copy_bool(request, parameters, "AudioAP1,SecurityMode", NULL);
+
+	char *comp_name = NULL;
+	plist_dict_iter iter = NULL;
+	plist_dict_new_iter(manifest_node, &iter);
+	while (iter) {
+		node = NULL;
+		comp_name = NULL;
+		plist_dict_next_item(manifest_node, iter, &comp_name, &node);
+		if (comp_name == NULL) {
+			node = NULL;
+			break;
+		}
+		if (strncmp(comp_name, "AudioAP1,", 9) == 0) {
+			plist_t manifest_entry = plist_copy(node);
+
+			/* handle RestoreRequestRules */
+			plist_t rules = plist_access_path(manifest_entry, 2, "Info", "RestoreRequestRules");
+			if (rules) {
+				debug("DEBUG: Applying restore request rules for entry %s\n", comp_name);
+				tss_entry_apply_restore_request_rules(manifest_entry, parameters, rules);
+			}
+
+			/* Make sure we have a Digest key for Trusted items even if empty */
+			if (plist_dict_get_bool(manifest_entry, "Trusted") && !plist_dict_get_item(manifest_entry, "Digest")) {
+				debug("DEBUG: No Digest data, using empty value for entry %s\n", comp_name);
+				plist_dict_set_item(manifest_entry, "Digest", plist_new_data(NULL, 0));
+			}
+
+			plist_dict_remove_item(manifest_entry, "Info");
+
+			/* finally add entry to request */
+			plist_dict_set_item(request, comp_name, manifest_entry);
+		}
+		free(comp_name);
+	}
+	free(iter);
+
+	/* apply overrides */
+	if (overrides) {
+		plist_dict_merge(&request, overrides);
+	}
+
+	return 0;
+}
+
 int tss_request_add_tcon_tags(plist_t request, plist_t parameters, plist_t overrides)
 {
 	plist_t node = NULL;

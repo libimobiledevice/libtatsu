@@ -49,6 +49,8 @@ LIBTATSU_API int tss_request_add_yonkers_tags(plist_t request, plist_t parameter
 LIBTATSU_API int tss_request_add_vinyl_tags(plist_t request, plist_t parameters, plist_t overrides);
 LIBTATSU_API int tss_request_add_rose_tags(plist_t request, plist_t parameters, plist_t overrides);
 LIBTATSU_API int tss_request_add_veridian_tags(plist_t request, plist_t parameters, plist_t overrides);
+LIBTATSU_API int tss_request_add_bora_tags(plist_t request, plist_t parameters, plist_t overrides);
+LIBTATSU_API int tss_request_add_durant_tags(plist_t request, plist_t parameters, plist_t overrides);
 LIBTATSU_API int tss_request_add_tcon_tags(plist_t request, plist_t parameters, plist_t overrides);
 LIBTATSU_API int tss_request_add_timer_tags(plist_t request, plist_t parameters, plist_t overrides);
 LIBTATSU_API int tss_request_add_cryptex_tags(plist_t request, plist_t parameters, plist_t overrides);
