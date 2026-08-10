@@ -1133,7 +1133,7 @@ int tss_request_add_yonkers_tags(plist_t request, plist_t parameters, plist_t ov
 			node = NULL;
 			break;
 		}
-		if (strncmp(comp_name, "Yonkers,", 8) == 0) {
+		if (strncmp(comp_name, "Yonkers,SysTopPatch", 19) == 0) {
 			int target_node = 1;
 			plist_t sub_node;
 			if ((sub_node = plist_dict_get_item(node, "EPRO")) != NULL && plist_get_node_type(sub_node) == PLIST_BOOLEAN) {
