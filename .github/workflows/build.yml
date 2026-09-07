@@ -18,7 +18,7 @@ jobs:
       run: |
           echo "target_triplet=`gcc -dumpmachine`" >> $GITHUB_ENV
     - name: fetch libplist
-      uses: dawidd6/action-download-artifact@v6
+      uses: dawidd6/action-download-artifact@v24
       with:
         github_token: ${{secrets.GITHUB_TOKEN}}
         workflow: build.yml
@@ -33,7 +33,7 @@ jobs:
           rm -rf extract/lib
           sudo cp -r extract/* /
           sudo ldconfig
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 0
     - name: autogen
@@ -48,7 +48,7 @@ jobs:
           DESTDIR=`pwd`/dest make install
           tar -C dest -cf libtatsu.tar usr
     - name: publish artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: libtatsu-latest_${{env.target_triplet}}
         path: libtatsu.tar
@@ -64,7 +64,7 @@ jobs:
           fi
       shell: bash
     - name: fetch libplist
-      uses: dawidd6/action-download-artifact@v6
+      uses: dawidd6/action-download-artifact@v24
       with:
         github_token: ${{secrets.GITHUB_TOKEN}}
         workflow: build.yml
@@ -77,7 +77,7 @@ jobs:
             tar -C extract -xvf $I
           done
           sudo cp -r extract/* /
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: install additional requirements
       run: |
           SDKDIR=`xcrun --sdk macosx --show-sdk-path 2>/dev/null`
@@ -126,7 +126,7 @@ jobs:
           DESTDIR=`pwd`/dest make install
           tar -C dest -cf libtatsu.tar usr
     - name: publish artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: libtatsu-latest_macOS
         path: libtatsu.tar
@@ -165,7 +165,7 @@ jobs:
           echo "dest=$dest" >> $GITHUB_ENV
           echo "target_triplet=`gcc -dumpmachine`" >> $GITHUB_ENV
     - name: fetch libplist
-      uses: dawidd6/action-download-artifact@v6
+      uses: dawidd6/action-download-artifact@v24
       with:
         github_token: ${{secrets.GITHUB_TOKEN}}
         workflow: build.yml
@@ -178,7 +178,7 @@ jobs:
             tar -C extract -xvf $I
           done
           cp -r extract/* /
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: install additional requirements
       run: |
           mkdir deps
@@ -202,7 +202,7 @@ jobs:
           DESTDIR=`pwd`/dest make install
           tar -C dest -cf libtatsu.tar ${{ env.dest }}
     - name: publish artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: libtatsu-latest_${{ matrix.arch }}-${{ env.dest }}
         path: libtatsu.tar
