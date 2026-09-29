@@ -1,3 +1,12 @@
+Version 1.1.0
+~~~~~~~~~~~~~
+
+Changes:
+- Add tss_request_add_bora_tags() and tss_request_add_durant_tags()
+- Update the client version and add Ap,Timestamp to TSS requests
+- Restrict the Yonkers selection to SysTopPatch
+
+
 Version 1.0.5
 ~~~~~~~~~~~~~
 
