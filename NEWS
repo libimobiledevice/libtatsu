@@ -1,3 +1,15 @@
+Version 1.1.0
+~~~~~~~~~~~~~
+
+Changes:
+- Add tss_request_add_bora_tags() and tss_request_add_durant_tags() to the API
+- Update auth client version and add Ap,Timestamp to requests
+- Restrict Yonkers tag selection to SysTopPatch
+
+Fixes:
+- Handle realloc() failure in tss_write_callback()
+
+
 Version 1.0.5
 ~~~~~~~~~~~~~
 
