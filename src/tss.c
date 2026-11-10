@@ -195,6 +195,7 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity,
 		return -1;
 	}
 
+	plist_dict_copy_uint(parameters, build_identity, "Ap,OSEnvironment", NULL);
 	plist_dict_copy_string(parameters, build_identity, "Ap,OSLongVersion", NULL);
 	plist_dict_copy_string(parameters, build_identity, "Ap,OSReleaseType", NULL);
 	plist_dict_copy_string(parameters, build_identity, "Ap,ProductMarketingVersion", NULL);
@@ -338,6 +339,7 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters)
 		return -1;
 	}
 
+	plist_dict_copy_uint(request, parameters, "Ap,OSEnvironment", NULL);
 	plist_dict_copy_string(request, parameters, "Ap,OSLongVersion", NULL);
 	plist_dict_copy_string(request, parameters, "Ap,OSReleaseType", NULL);
 	plist_dict_copy_string(request, parameters, "Ap,ProductMarketingVersion", NULL);
