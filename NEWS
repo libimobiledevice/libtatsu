@@ -1,3 +1,10 @@
+Version 1.1.1
+~~~~~~~~~~~~~
+
+Changes:
+- Copy Ap,OSEnvironment from the build identity into AP requests (cloudOS)
+
+
 Version 1.1.0
 ~~~~~~~~~~~~~
 
