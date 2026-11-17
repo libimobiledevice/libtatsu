@@ -33,7 +33,7 @@ jobs:
           rm -rf extract/lib
           sudo cp -r extract/* /
           sudo ldconfig
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
     - name: autogen
@@ -77,7 +77,9 @@ jobs:
             tar -C extract -xvf $I
           done
           sudo cp -r extract/* /
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
     - name: install additional requirements
       run: |
           SDKDIR=`xcrun --sdk macosx --show-sdk-path 2>/dev/null`
@@ -131,7 +133,7 @@ jobs:
         name: libtatsu-latest_macOS
         path: libtatsu.tar
   build-windows:
-    runs-on: windows-latest
+    runs-on: ${{ matrix.runner }}
     defaults:
       run:
         shell: msys2 {0}
@@ -139,8 +141,11 @@ jobs:
       fail-fast: false
       matrix:
         include: [
-          { msystem: MINGW64, arch: x86_64 },
-          { msystem: MINGW32, arch: i686   }
+          { runner: windows-latest, msystem: CLANG64, arch: x86_64, flavor: w64-clang, cc: clang },
+          { runner: windows-latest, msystem: UCRT64, arch: x86_64, flavor: w64-ucrt, cc: gcc },
+          { runner: windows-latest, msystem: MINGW64, arch: x86_64, flavor: w64, cc: gcc },
+          { runner: windows-latest, msystem: MINGW32, arch: i686, flavor: w64, cc: gcc },
+          { runner: windows-11-arm, msystem: CLANGARM64, arch: aarch64, flavor: w64-clang, cc: clang }
         ]
     steps:
     - uses: msys2/setup-msys2@v2
@@ -148,12 +153,13 @@ jobs:
         msystem: ${{ matrix.msystem }}
         release: false
         update: false
+        suppress-deprecation-warnings: msystem-mingw32 msystem-mingw64
         install: >-
           base-devel
           git
-          mingw-w64-${{ matrix.arch }}-gcc
-          mingw-w64-${{ matrix.arch }}-pkg-config
-          mingw-w64-${{ matrix.arch }}-openssl
+          mingw-${{ matrix.flavor }}-${{ matrix.arch }}-${{ matrix.cc }}
+          mingw-${{ matrix.flavor }}-${{ matrix.arch }}-pkgconf
+          mingw-${{ matrix.flavor }}-${{ matrix.arch }}-openssl
           make
           libtool
           autoconf
@@ -163,13 +169,14 @@ jobs:
       run: |
           dest=`echo ${{ matrix.msystem }} |tr [:upper:] [:lower:]`
           echo "dest=$dest" >> $GITHUB_ENV
-          echo "target_triplet=`gcc -dumpmachine`" >> $GITHUB_ENV
+          echo "target_triplet=`${{ matrix.cc }} -dumpmachine`" >> $GITHUB_ENV
+          git config --global core.autocrlf false
     - name: fetch libplist
       uses: dawidd6/action-download-artifact@v24
       with:
         github_token: ${{secrets.GITHUB_TOKEN}}
         workflow: build.yml
-        name: libplist-latest_${{ matrix.arch }}-${{ env.dest }}
+        name: libplist-latest_${{ matrix.arch }}-windows-${{ env.dest }}
         repo: libimobiledevice/libplist
     - name: install external dependencies
       run: |
@@ -178,19 +185,21 @@ jobs:
             tar -C extract -xvf $I
           done
           cp -r extract/* /
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
     - name: install additional requirements
       run: |
           mkdir deps
-          FILENAME="libcurl-8.1.0-static.tar.bz2"
-          curl -o $FILENAME.b64 -Ls "https://gist.github.com/nikias/6c397a0a2f4f4eafd91b81cccd22b761/raw/85216e60af6787f3b351291165eb91bd585ff09a/libcurl-8.1.0-static-${{matrix.arch}}-${{env.dest}}.tar.bz2"
+          FILENAME="libcurl-8.10.1-static.tar.bz2"
+          curl -o $FILENAME.b64 -Ls "https://gist.githubusercontent.com/nikias/f988af36f51e4a6f28c36d52cafe7c83/raw/9a3612ea15d58da8e9574736d44e192732ce5446/libcurl-8.10.1-static-${{matrix.arch}}-windows-${{env.dest}}.tar.bz2"
           base64 -d < $FILENAME.b64 > $FILENAME
           tar -C deps -xjf $FILENAME
           echo "LIBCURL_CFLAGS=-I`pwd`/deps/include -DCURL_STATICLIB" >> $GITHUB_ENV
           echo "LIBCURL_LIBS=-Xlinker `pwd`/deps/lib/libcurl.a -Xlinker /${{env.dest}}/lib/libzstd.a -Xlinker /${{env.dest}}/lib/libz.a -Xlinker -lws2_32 -Xlinker -lcrypt32 -Xlinker -lwldap32 -Xlinker -lbcrypt -Xlinker -lssl -Xlinker -lcrypto" >> $GITHUB_ENV
     - name: autogen
       run: |
-          ./autogen.sh CC=gcc CXX=g++ \
+          ./autogen.sh \
               libcurl_CFLAGS="${{env.LIBCURL_CFLAGS}}" libcurl_LIBS="${{env.LIBCURL_LIBS}}"
     - name: make
       run: make
@@ -204,5 +213,5 @@ jobs:
     - name: publish artifact
       uses: actions/upload-artifact@v6
       with:
-        name: libtatsu-latest_${{ matrix.arch }}-${{ env.dest }}
+        name: libtatsu-latest_${{ matrix.arch }}-windows-${{ env.dest }}
         path: libtatsu.tar
