@@ -28,7 +28,11 @@
 #ifdef LIBTATSU_STATIC
   #define LIBTATSU_API
 #elif defined(_WIN32)
-  #define LIBTATSU_API __declspec( dllexport )
+  #ifdef DLL_EXPORT
+    #define LIBTATSU_API __declspec( dllexport )
+  #else
+    #define LIBTATSU_API
+  #endif
 #else
   #if __GNUC__ >= 4
     #define LIBTATSU_API __attribute__((visibility("default")))

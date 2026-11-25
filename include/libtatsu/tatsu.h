@@ -23,13 +23,7 @@
 #define __TATSU_H
 
 #ifndef LIBTATSU_API
-  #ifdef LIBTATSU_STATIC
-    #define LIBTATSU_API
-  #elif defined(_WIN32)
-    #define LIBTATSU_API __declspec(dllimport)
-  #else
-    #define LIBTATSU_API
-  #endif
+  #define LIBTATSU_API
 #endif
 
 #ifdef __cplusplus
